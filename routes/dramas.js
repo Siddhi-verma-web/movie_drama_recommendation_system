@@ -1,20 +1,20 @@
 const router = require('express').Router();
 const Drama = require('../models/Drama');
 
-// List + filters: /api/dramas?country=Korea&genre=Romance&mood=Healing&trope=...&q=title&sort=rating
 router.get('/', async (req, res) => {
-  const { country, genre, mood, trope, q, sort } = req.query;
+  const { country, genre, mood, trope, q, sort, type } = req.query;
   const f = {};
   if (country) f.country = country;
   if (genre) f.genre = genre;
   if (mood) f.moodTags = mood;
   if (trope) f.tropes = trope;
+  if (type === 'movie') f.type = 'movie';
+  if (type === 'drama') f.type = { $ne: 'movie' };
   if (q) f.title = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   const order = sort === 'rating' ? { avgRating: -1 } : { releaseYear: -1 };
-  res.json(await Drama.find(f).sort(order).limit(100));
+  res.json(await Drama.find(f).sort(order).limit(200));
 });
 
-// Detail
 router.get('/:id', async (req, res) => {
   try {
     const d = await Drama.findById(req.params.id).populate('cast');
@@ -23,7 +23,6 @@ router.get('/:id', async (req, res) => {
   } catch { res.status(400).json({ error: 'Bad id' }); }
 });
 
-// Recommendations (Section 10.4 formula)
 router.get('/:id/similar', async (req, res) => {
   try {
     const base = await Drama.findById(req.params.id);

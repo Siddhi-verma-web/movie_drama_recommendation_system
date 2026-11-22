@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 module.exports = mongoose.model('Drama', new mongoose.Schema({
   tmdbId: Number,
+  type: { type: String, default: 'drama' },
   title: { type: String, required: true },
   country: String,
   overview: String,
@@ -11,6 +12,7 @@ module.exports = mongoose.model('Drama', new mongoose.Schema({
   tropes: [String],
   releaseYear: Number,
   episodeCount: Number,
+  runtime: Number,
   avgRating: { type: Number, default: 0 },
   platforms: [{ name: String, url: String }],
   ost: [{ songTitle: String, artist: String, youtubeUrl: String }],

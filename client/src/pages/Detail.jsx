@@ -20,6 +20,7 @@ export default function Detail() {
   const act = async (fn, text) => { try { await fn(); setMsg(text) } catch { setMsg('Failed') } }
   if (!d) return <p className="p-5">Loading...</p>
   const link = d.platforms?.[0]?.url
+  const isMovie = d.type === 'movie'
 
   return (
     <div className="p-5 max-w-5xl mx-auto">
@@ -27,9 +28,13 @@ export default function Detail() {
         {d.poster && <img src={d.poster} className="w-64 rounded-lg self-start" />}
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{d.title}</h1>
-          <p className="text-gray-400 mb-3">{d.country} · {d.releaseYear} · {d.episodeCount} eps · ⭐{d.avgRating}</p>
+
+          <p className="text-gray-400 mb-3">
+            {isMovie ? 'Movie' : 'Drama'} · {d.country} · {d.releaseYear} ·{' '}
+            {isMovie ? (d.runtime || '-') + ' min' : (d.episodeCount || '-') + ' eps'} · ⭐{d.avgRating}
+          </p>
           <div className="flex flex-wrap gap-2 mb-3 text-xs">
-            {[...d.genre, ...d.moodTags, ...d.tropes].map((t, i) =>
+            {[...(d.genre || []), ...(d.moodTags || []), ...(d.tropes || [])].map((t, i) =>
               <span key={i} className="bg-rose-500/20 px-2 py-1 rounded">{t}</span>)}
           </div>
           <p className="mb-4">{d.overview}</p>
