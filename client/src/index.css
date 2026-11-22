@@ -1,2 +1,4 @@
 @import "tailwindcss";
+:root { color-scheme: dark; }
 body { background: #0f0f14; color: #eee; }
+select, option, input { background: #1c1c26; color: #eee; }

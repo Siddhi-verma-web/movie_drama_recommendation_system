@@ -7,13 +7,21 @@ const MOODS = ['Romantic', 'Emotional', 'Slow Burn', 'Healing', 'Revenge', 'Susp
 
 export default function Home() {
   const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
   const [f, setF] = useState({ q: '', type: '', country: '', mood: '', sort: '' })
+
   useEffect(() => {
+    setLoading(true)
     const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v))
-    api.get('/dramas', { params }).then(r => setList(r.data))
+    api.get('/dramas', { params })
+      .then(r => setList(r.data))
+      .catch(() => setList([]))
+      .finally(() => setLoading(false))
   }, [f])
+
   const set = k => e => setF({ ...f, [k]: e.target.value })
-  const cls = 'bg-white/10 rounded px-3 py-2 text-sm'
+  const cls = 'bg-[#1c1c26] text-gray-100 border border-white/10 rounded px-3 py-2 text-sm'
+
   return (
     <div className="p-5 max-w-6xl mx-auto">
       <h1 className="text-xl mb-3">Discover movies & dramas from 6 countries</h1>
@@ -25,19 +33,29 @@ export default function Home() {
           <option value="drama">Dramas only</option>
         </select>
         <select className={cls} value={f.country} onChange={set('country')}>
-          <option value="">All countries</option>{COUNTRIES.map(c => <option key={c}>{c}</option>)}
+          <option value="">All countries</option>
+          {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select className={cls} value={f.mood} onChange={set('mood')}>
-          <option value="">Any mood</option>{MOODS.map(c => <option key={c}>{c}</option>)}
+          <option value="">Any mood</option>
+          {MOODS.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select className={cls} value={f.sort} onChange={set('sort')}>
-          <option value="">Newest</option><option value="rating">Top rated</option>
+          <option value="">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="rating">Top rated</option>
+          <option value="az">A to Z</option>
         </select>
       </div>
+
+      {loading && <p className="text-gray-400">Loading...</p>}
+
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
         {list.map(d => <Card key={d._id} d={d} />)}
       </div>
-      {list.length === 0 && <p className="text-gray-400">No titles found.</p>}
+
+      {!loading && list.length === 0 &&
+        <p className="text-gray-400">No titles found for this filter.</p>}
     </div>
   )
 }

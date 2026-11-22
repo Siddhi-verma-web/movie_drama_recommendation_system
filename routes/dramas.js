@@ -3,7 +3,7 @@ const Drama = require('../models/Drama');
 
 router.get('/', async (req, res) => {
   const { country, genre, mood, trope, q, sort, type } = req.query;
-  const f = {};
+  const f = { poster: { $nin: ['', null] } };
   if (country) f.country = country;
   if (genre) f.genre = genre;
   if (mood) f.moodTags = mood;
@@ -11,8 +11,12 @@ router.get('/', async (req, res) => {
   if (type === 'movie') f.type = 'movie';
   if (type === 'drama') f.type = { $ne: 'movie' };
   if (q) f.title = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-  const order = sort === 'rating' ? { avgRating: -1 } : { releaseYear: -1 };
-  res.json(await Drama.find(f).sort(order).limit(200));
+  const orders = {
+    rating: { avgRating: -1 },
+    oldest: { releaseYear: 1 },
+    az: { title: 1 }
+  };
+  res.json(await Drama.find(f).sort(orders[sort] || { releaseYear: -1 }).limit(300));
 });
 
 router.get('/:id', async (req, res) => {
@@ -29,7 +33,7 @@ router.get('/:id/similar', async (req, res) => {
     if (!base) return res.status(404).json({ error: 'Not found' });
     const common = (a = [], b = []) => a.filter(x => b.includes(x)).length;
     const baseCast = base.cast.map(String);
-    const all = await Drama.find({ _id: { $ne: base._id } });
+    const all = await Drama.find({ _id: { $ne: base._id }, poster: { $nin: ['', null] } });
     const scored = all.map(d => ({
       drama: d,
       score: 2 * common(base.genre, d.genre) + 1.5 * common(base.moodTags, d.moodTags)
